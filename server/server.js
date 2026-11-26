@@ -8,14 +8,23 @@ const cors = require('cors');
 
 const connectDB = require('./config/db');
 const licenseRoutes = require('./routes/licenseRoutes');
+const paymentRoutes = require('./routes/paymentRoutes');
+const { handleBachsWebhook } = require('./controllers/webhookController');
 
 const app = express();
 
 app.use(cors());
 app.use(express.json());
 
+// Webhook route must come before express.json()
+app.post(
+    '/api/payment/webhook',
+    express.raw({ type: 'application/json' }),
+    handleBachsWebhook
+);
 // Routes
 app.use('/api/license', licenseRoutes);
+app.use('/api/payment', paymentRoutes);
 
 // Start server after MongoDB connects
 const startServer = async () => {

@@ -31,7 +31,10 @@ const activateLicense = async (req, res) => {
             });
         }
 
-        if (license.status === 'EXPIRED' || license.expiresAt <= new Date()) {
+        if (
+            license.status === 'EXPIRED' ||
+            (license.expiresAt && license.expiresAt <= new Date())
+        )  {
             return res.status(403).json({
                 success: false,
                 status: 'EXPIRED',
@@ -207,5 +210,5 @@ const editDeviceId = async (req, res) => {
     }
 };
 
-module.exports = { activateLicense, createLicense, editDeviceId };
+module.exports = { activateLicense, createLicense, editDeviceId, generateLicenseKey };
 

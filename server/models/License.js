@@ -1,3 +1,4 @@
+
 const mongoose = require('mongoose');
 
 const licenseSchema = new mongoose.Schema({
@@ -19,6 +20,12 @@ const licenseSchema = new mongoose.Schema({
         }
     },
 
+    plan: {
+        type: String,
+        enum: ['BASIC', 'SIX_MONTHS', 'LIFETIME'],
+        required: true
+    },
+
     status: {
         type: String,
         enum: ['ACTIVE', 'EXPIRED', 'REVOKED'],
@@ -27,7 +34,24 @@ const licenseSchema = new mongoose.Schema({
 
     expiresAt: {
         type: Date,
-        required: true
+        default: null
+    },
+
+    paymentReference: {
+        type: String,
+        default: undefined,
+        unique: true,
+        sparse: true
+    },
+
+    subscriptionId: {
+        type: String,
+        default: null
+    },
+
+    nextBillingDate: {
+        type: Date,
+        default: null
     },
 
     deviceId: {
@@ -44,8 +68,12 @@ const licenseSchema = new mongoose.Schema({
         type: Date,
         default: null
     },
-
-    lastVerifiedAt: {
+    plan: {
+        type: String,
+        enum: ['BASIC', 'SIX_MONTHS', 'LIFETIME', 'MANUAL'],
+        default: 'MANUAL'
+    },
+       lastVerifiedAt: {
         type: Date,
         default: null
     }
