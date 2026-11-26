@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import './cancel-subscription.css'
+import TelegramFloat from './TelegramFloat'
 
 const API_URL = (import.meta.env.VITE_API_URL || '').replace(/\/$/, '')
 
@@ -54,6 +55,7 @@ export default function CancelSubscriptionPage() {
         <div className="cancel-policy"><strong>What happens next?</strong><p>Your subscription stays active until the end of the current billing period. You can continue using your license until then, and you won’t be charged for another period.</p></div>
         <p className="cancel-support">Need help? <a href="mailto:support@synesisbot.com">Contact Synesis support</a>.</p>
       </section>
+      <TelegramFloat />
     </main>
   )
 }

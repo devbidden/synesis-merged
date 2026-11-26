@@ -10,6 +10,7 @@ const sections = [
   ['users', 'Users'],
   ['paying-users', 'Paying users'],
   ['payments', 'Payments'],
+  ['ea-file', 'EA download'],
 ]
 
 async function request(path, { token, ...options } = {}) {
@@ -112,13 +113,14 @@ function AdminDashboard() {
   }
 
   async function loadMetrics(currentToken) {
-    const [licenses, active, paying, paid] = await Promise.all([
+    const [licenses, active, paying, paid, eaFile] = await Promise.all([
       request('/api/admin/licenses?limit=1', { token: currentToken }),
       request('/api/admin/licenses?status=ACTIVE&limit=1', { token: currentToken }),
       request('/api/admin/paying-users?limit=1', { token: currentToken }),
       request('/api/admin/payments?status=SUCCESS&limit=1', { token: currentToken }),
+      request('/api/admin/ea-file', { token: currentToken }),
     ])
-    setMetrics({ licenses: licenses.pagination.total, active: active.pagination.total, paying: paying.pagination.total, payments: paid.pagination.total })
+    setMetrics({ licenses: licenses.pagination.total, active: active.pagination.total, paying: paying.pagination.total, payments: paid.pagination.total, downloads: eaFile.downloadCount || 0 })
   }
 
   async function loadRows(currentToken = token, currentPage = page, currentSection = section) {
@@ -225,13 +227,16 @@ function AdminDashboard() {
                 <Metric title="Active licenses" value={metrics?.active} detail="Currently valid" icon="✓" />
                 <Metric title="Paying customers" value={metrics?.paying} detail="At least one successful payment" icon="$" />
                 <Metric title="Successful payments" value={metrics?.payments} detail="Completed transactions" icon="↗" />
+                <Metric title="EA downloads" value={metrics?.downloads} detail="Completed file downloads" icon="↓" />
               </div>
               <div className="admin-welcome-panel"><div><span className="admin-panel-icon">✦</span><h2>Your business at a glance</h2><p>Use the sidebar to review customers and payments, or manage license access from the Licenses section.</p></div><button className="admin-secondary-button" onClick={() => { setSection('licenses'); setPage(1); }}>Manage licenses <span>→</span></button></div>
               <div className="admin-overview-note"><strong>Good to know</strong><p>Payment records update when Bachs confirms a transaction. License access can be revoked immediately from the Licenses table.</p></div>
             </>
           )}
 
-          {section !== 'overview' && (
+          {section === 'ea-file' && <EAFileManager token={token} />}
+
+          {section !== 'overview' && section !== 'ea-file' && (
             <>
               {showCreate && section === 'licenses' && <form className="admin-create-form" onSubmit={createLicense}><div className="admin-form-heading"><div><h2>Create a license</h2><p>Issue a new license directly to a customer.</p></div><button type="button" className="admin-icon-button" onClick={() => setShowCreate(false)} aria-label="Close form">×</button></div><div className="admin-form-grid"><label className="admin-field">Customer name<input required value={licenseForm.name} onChange={(event) => setLicenseForm({ ...licenseForm, name: event.target.value })} placeholder="Full name" /></label><label className="admin-field">Email address<input required type="email" value={licenseForm.email} onChange={(event) => setLicenseForm({ ...licenseForm, email: event.target.value })} placeholder="customer@example.com" /></label><label className="admin-field">Plan<select value={licenseForm.plan} onChange={(event) => setLicenseForm({ ...licenseForm, plan: event.target.value })}><option value="MANUAL">Manual</option><option value="BASIC">Monthly</option><option value="SIX_MONTHS">Six months</option><option value="LIFETIME">Lifetime</option></select></label><label className="admin-field">Duration in days <span className="admin-optional">Optional</span><input type="number" min="1" step="1" value={licenseForm.duration} onChange={(event) => setLicenseForm({ ...licenseForm, duration: event.target.value })} placeholder="Leave blank for no expiry" /></label></div><div className="admin-form-actions"><button type="button" className="admin-secondary-button" onClick={() => setShowCreate(false)}>Cancel</button><button className="admin-primary-button" disabled={createBusy}>{createBusy ? 'Creating…' : 'Create license'}</button></div></form>}
 
@@ -247,6 +252,77 @@ function AdminDashboard() {
 
 function Metric({ title, value, detail, icon }) {
   return <article className="admin-metric-card"><div className="admin-metric-top"><span>{title}</span><span className="admin-metric-icon">{icon}</span></div><strong>{value === null || value === undefined ? '—' : Number(value).toLocaleString()}</strong><small>{detail}</small></article>
+}
+
+function EAFileManager({ token }) {
+  const [file, setFile] = useState(null)
+  const [status, setStatus] = useState(null)
+  const [busy, setBusy] = useState(false)
+  const [message, setMessage] = useState('')
+  const [error, setError] = useState('')
+
+  async function refreshStatus() {
+    try {
+      const result = await request('/api/admin/ea-file', { token })
+      setStatus(result)
+    } catch (statusError) {
+      setError(statusError.message)
+    }
+  }
+
+  useEffect(() => { refreshStatus() }, [token])
+
+  async function upload(event) {
+    event.preventDefault()
+    if (!file) return
+    const form = event.currentTarget
+    setBusy(true)
+    setError('')
+    setMessage('')
+    try {
+      const result = await request('/api/admin/ea-file', {
+        token,
+        method: 'PUT',
+        body: file,
+        headers: {
+          'Content-Type': 'application/octet-stream',
+          'X-Upload-Filename': file.name,
+        },
+      })
+      setMessage(result.message)
+      setFile(null)
+      await refreshStatus()
+      form.reset()
+    } catch (uploadError) {
+      setError(uploadError.message)
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  const sizeInMb = status?.size ? (status.size / (1024 * 1024)).toFixed(2) : null
+
+  return (
+    <section className="admin-ea-manager">
+      <div className="admin-ea-heading"><div><p className="admin-eyebrow">CUSTOMER DOWNLOAD</p><h2>Manage the free EA file</h2><p>Upload the exact compiled <code>.ex5</code> file customers will download. The EA shell still requires a valid Synesis license to activate.</p></div><span className={`admin-ea-state ${status?.available ? 'ready' : ''}`}>{status?.available ? 'Download live' : 'No file uploaded'}</span></div>
+
+      {error && <p className="admin-alert admin-alert-error" role="alert">{error}</p>}
+      {message && <p className="admin-alert admin-alert-success" role="status">{message}</p>}
+
+      <div className="admin-ea-file-card">
+        <div className="admin-ea-file-icon">EX5</div>
+        <div className="admin-ea-file-details"><strong>{status?.available ? 'Synesis EA download is ready' : 'Synesis EA file not uploaded'}</strong><span>{status?.available ? `${status.fileName} · ${sizeInMb} MB · Updated ${new Date(status.updatedAt).toLocaleString()}` : 'Upload an .ex5 file to enable the free download button on the website.'}</span></div>
+        <span className="admin-ea-download-count"><strong>{(status?.downloadCount || 0).toLocaleString()}</strong><small>downloads</small></span>
+        {status?.available && <a className="admin-secondary-button" href={`${API_URL}/api/download/ea`} target="_blank" rel="noreferrer">Preview download ↗</a>}
+      </div>
+
+      <form className="admin-ea-upload-form" onSubmit={upload}>
+        <label className="admin-field">Select compiled EA file<input type="file" accept=".ex5,application/octet-stream" onChange={(event) => setFile(event.target.files?.[0] || null)} /></label>
+        <p className="admin-ea-help">EX5 files only. Maximum upload size: 100 MB. Uploading replaces the current customer download.</p>
+        <button className="admin-primary-button" disabled={!file || busy}>{busy ? 'Uploading file…' : status?.available ? 'Replace EA download' : 'Upload EA file'}</button>
+      </form>
+    </section>
+  )
 }
 
 function Table({ section, rows, busy, onRevoke }) {

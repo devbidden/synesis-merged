@@ -12,6 +12,7 @@ const licenseRoutes = require('./routes/licenseRoutes');
 const paymentRoutes = require('./routes/paymentRoutes');
 const adminRoutes = require('./routes/adminRoutes');
 const adminAuthRoutes = require('./routes/adminAuthRoutes');
+const downloadRoutes = require('./routes/downloadRoutes');
 const { handleBachsWebhook } = require('./controllers/webhookController');
 
 const app = express();
@@ -30,6 +31,7 @@ app.use(express.json());
 // Routes
 app.use('/api/license', licenseRoutes);
 app.use('/api/payment', paymentRoutes);
+app.use('/api/download', downloadRoutes);
 app.use('/api/admin/auth', adminAuthRoutes);
 app.use('/api/admin', adminRoutes);
 

@@ -18,6 +18,8 @@ The website dashboard is available at `/admin`. It provides an overview, paginat
 | `GET` | `/users` | List distinct license holders and their licenses. |
 | `GET` | `/paying-users` | List distinct customers with at least one successful payment, with payment totals. |
 | `GET` | `/payments` | List payment records. Optional `status`, `page`, and `limit` query parameters. |
+| `GET` | `/ea-file` | Check EA download availability, file metadata, and the persistent completed-download count. |
+| `PUT` | `/ea-file` | Upload or replace the customer `.ex5` file. Send the raw file body as `application/octet-stream` and its original name in `X-Upload-Filename`; maximum 100 MB. |
 
 List endpoints use pages of 50 by default and cap `limit` at 200. For example:
 
@@ -27,6 +29,8 @@ curl -H "x-admin-api-key: $ADMIN_API_KEY" \
 ```
 
 The current data model has no standalone user account collection, so `/users` reports people represented by license records. `/paying-users` uses successful payment records.
+
+The public download is `GET /api/download/ea`; availability is `GET /api/download/ea/status`. Successful file transfers increment a MongoDB counter shown on the admin overview and EA download page. The file is stored as `server/uploads/synesis-ea.ex5` by default. Set `EA_UPLOAD_DIR` if the deployment needs a persistent volume. The free download is the EA shell; customers still need a valid Synesis license to activate it.
 
 ## Customer subscription cancellation
 

@@ -1,0 +1,6 @@
+.telegram-float { position: fixed; right: max(18px, env(safe-area-inset-right)); bottom: max(18px, env(safe-area-inset-bottom)); z-index: 9000; display: grid; width: 58px; height: 58px; place-items: center; border: 2px solid #fff; border-radius: 50%; color: #fff; background: #229ed9; box-shadow: 0 5px 18px #10263855; transition: transform 150ms ease, box-shadow 150ms ease; }
+.telegram-float:hover,.telegram-float:focus-visible { transform: translateY(-3px); box-shadow: 0 8px 22px #10263866; }
+.telegram-float:focus-visible { outline: 3px solid #162f49; outline-offset: 3px; }
+.telegram-float svg { display: block; width: 29px; height: 29px; fill: currentColor; }
+@media (max-width: 480px) { .telegram-float { right: max(14px, env(safe-area-inset-right)); bottom: max(14px, env(safe-area-inset-bottom)); width: 52px; height: 52px; } .telegram-float svg { width: 26px; height: 26px; } }
+@media (prefers-reduced-motion: reduce) { .telegram-float { transition: none; } }
