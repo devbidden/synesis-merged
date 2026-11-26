@@ -1,7 +1,12 @@
 const crypto = require('crypto');
+const { isValidAdminSession } = require('./adminSession');
 
 const requireAdmin = (req, res, next) => {
     const expectedKey = process.env.ADMIN_API_KEY;
+    const authorization = req.get('authorization') || '';
+    const bearerToken = authorization.startsWith('Bearer ') ? authorization.slice(7) : '';
+    if (isValidAdminSession(bearerToken)) return next();
+
     const providedKey = req.get('x-admin-api-key');
 
     if (!expectedKey) {

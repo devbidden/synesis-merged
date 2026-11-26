@@ -1,0 +1,28 @@
+.cancel-page { min-height: 100vh; box-sizing: border-box; padding: 0 20px 48px; color: #1d2b42; background: radial-gradient(ellipse at 50% 0, #e3f6fb 0, transparent 44%), #f5f7fa; font-family: Arial, Helvetica, sans-serif; }
+.cancel-header { display: flex; max-width: 1120px; height: 74px; align-items: center; justify-content: space-between; margin: 0 auto; }
+.cancel-brand img { display: block; width: 128px; height: 44px; object-fit: contain; }
+.cancel-home-link { color: #5d6d84; font-size: 13px; font-weight: 700; text-decoration: none; }
+.cancel-home-link:hover,.cancel-support a:hover { color: #087eaf; }
+.cancel-panel { width: min(100%, 510px); box-sizing: border-box; margin: 38px auto 0; border: 1px solid #e4eaf0; border-radius: 17px; padding: 33px; background: #fff; box-shadow: 0 18px 55px #183a5612; }
+.cancel-icon { display: grid; width: 43px; height: 43px; place-items: center; border-radius: 13px; color: #0c8ab4; background: #e7f6fa; font-size: 24px; }
+.cancel-kicker { margin: 22px 0 7px; color: #138bb2; font-size: 10px; font-weight: 800; letter-spacing: .14em; }
+.cancel-panel h1 { margin: 0; color: #1b2a41; font-size: clamp(23px, 5vw, 29px); font-weight: 750; letter-spacing: -.035em; }
+.cancel-intro { margin: 10px 0 23px; color: #718098; font-size: 13px; line-height: 1.65; }
+.cancel-form { display: grid; gap: 14px; }
+.cancel-form label { display: flex; flex-direction: column; gap: 7px; color: #35445c; font-size: 12px; font-weight: 700; }
+.cancel-form input { min-height: 43px; box-sizing: border-box; border: 1px solid #dce3eb; border-radius: 7px; padding: 10px 12px; color: #25334a; background: #fff; font: inherit; font-size: 13px; outline: 0; }
+.cancel-form input:focus { border-color: #159bc8; box-shadow: 0 0 0 3px #159bc81c; }
+.cancel-form input::placeholder { color: #a2adbc; }
+.cancel-form button { min-height: 44px; margin-top: 3px; border: 1px solid #118db8; border-radius: 7px; color: #fff; background: #118db8; font: inherit; font-size: 13px; font-weight: 700; cursor: pointer; }
+.cancel-form button:hover:not(:disabled) { background: #0b779d; }
+.cancel-form button:disabled { cursor: wait; opacity: .65; }
+.cancel-result { border: 1px solid; border-radius: 8px; padding: 12px 13px; font-size: 12px; line-height: 1.55; }
+.cancel-result p { margin: 5px 0 0; }
+.cancel-result.success { border-color: #cce9d8; color: #28744b; background: #f2fbf6; }
+.cancel-result.error { border-color: #f0d0ce; color: #a23f3e; background: #fff6f5; }
+.cancel-policy { margin-top: 21px; border: 1px solid #e8edf2; border-radius: 8px; padding: 13px; background: #f8fafc; }
+.cancel-policy strong { color: #43516a; font-size: 11px; }
+.cancel-policy p { margin: 5px 0 0; color: #7f8b9d; font-size: 11px; line-height: 1.6; }
+.cancel-support { margin: 20px 0 0; color: #8691a2; font-size: 11px; text-align: center; }
+.cancel-support a { color: #1287ad; font-weight: 700; text-decoration: none; }
+@media (max-width: 520px) { .cancel-page { padding-right: 14px; padding-left: 14px; } .cancel-header { height: 62px; } .cancel-brand img { width: 100px; } .cancel-home-link { font-size: 11px; } .cancel-panel { margin-top: 24px; padding: 25px 21px; } }

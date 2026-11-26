@@ -1,4 +1,5 @@
-require('dotenv').config();
+const path = require('path');
+require('dotenv').config({ path: path.join(__dirname, '.env') });
 const dns = require("dns");
 
 dns.setServers(["8.8.8.8", "1.1.1.1"]);
@@ -10,6 +11,7 @@ const connectDB = require('./config/db');
 const licenseRoutes = require('./routes/licenseRoutes');
 const paymentRoutes = require('./routes/paymentRoutes');
 const adminRoutes = require('./routes/adminRoutes');
+const adminAuthRoutes = require('./routes/adminAuthRoutes');
 const { handleBachsWebhook } = require('./controllers/webhookController');
 
 const app = express();
@@ -28,6 +30,7 @@ app.use(express.json());
 // Routes
 app.use('/api/license', licenseRoutes);
 app.use('/api/payment', paymentRoutes);
+app.use('/api/admin/auth', adminAuthRoutes);
 app.use('/api/admin', adminRoutes);
 
 // Start server after MongoDB connects

@@ -1,4 +1,6 @@
 import { useState } from 'react'
+import AdminDashboard from './AdminDashboard'
+import CancelSubscriptionPage from './CancelSubscriptionPage'
 import './App.css'
 
 const API_URL = (import.meta.env.VITE_API_URL || '').replace(/\/$/, '')
@@ -95,7 +97,7 @@ async function postJson(path, body) {
       body: JSON.stringify(body),
     })
   } catch {
-    throw new Error('Could not reach the checkout service. Check the backend connection and try again.')
+    throw new Error('Could not reach the Synesis service. Check the backend connection and try again.')
   }
   const data = await response.json().catch(() => ({}))
   if (!response.ok || !data.success) throw new Error(data.message || 'The request could not be completed.')
@@ -107,8 +109,6 @@ function App() {
   const [plan, setPlan] = useState('BASIC')
   const [checkout, setCheckout] = useState({ name: '', email: '' })
   const [paymentState, setPaymentState] = useState({ busy: false, message: '', error: false })
-  const [cancellation, setCancellation] = useState({ licenseKey: '', email: '' })
-  const [cancellationState, setCancellationState] = useState({ busy: false, message: '', error: false })
 
   async function startCheckout(event) {
     event.preventDefault()
@@ -126,27 +126,17 @@ function App() {
     }
   }
 
-  async function cancelSubscription(event) {
-    event.preventDefault()
-    setCancellationState({ busy: true, message: '', error: false })
-    try {
-      const result = await postJson('/api/payment/cancel-subscription', {
-        licenseKey: cancellation.licenseKey.trim(),
-        email: cancellation.email.trim(),
-      })
-      const effectiveAt = result.effectiveAt ? ` Your access remains available until ${new Date(result.effectiveAt).toLocaleDateString()}.` : ''
-      setCancellationState({ busy: false, message: `${result.message}${effectiveAt}`, error: false })
-    } catch (error) {
-      setCancellationState({ busy: false, message: error.message, error: true })
-    }
+  if (window.location.pathname === '/admin' || window.location.pathname.startsWith('/admin/')) {
+    return <AdminDashboard />
   }
+  if (window.location.pathname === '/cancel-subscription') return <CancelSubscriptionPage />
 
   return (
     <main>
       <header className="brand-header">
         <div className="header-inner mx-auto flex max-w-7xl items-center justify-between gap-2 px-3">
           <a className="brand-mark" href="#top" aria-label="Synesis home"><img className="brand-logo" src="/logo.png" alt="Synesis" /></a>
-          <nav className="main-nav" aria-label="Main navigation"><a href="#order">Order</a><a href="#manage-subscription">Cancel subscription</a><a href="#results">Results</a><a href="#features">Features</a><a href="#reviews">Reviews</a><a href="#guides">Guides</a><a href="#faq">FAQ</a><a href="#contact">Contact</a></nav>
+          <nav className="main-nav" aria-label="Main navigation"><a href="#order">Order</a><a href="/cancel-subscription">Cancel subscription</a><a href="#results">Results</a><a href="#features">Features</a><a href="#reviews">Reviews</a><a href="#guides">Guides</a><a href="#faq">FAQ</a><a href="#contact">Contact</a></nav>
         </div>
       </header>
 
@@ -184,20 +174,7 @@ function App() {
         </div>
       </section>
 
-      <section id="manage-subscription" className="offer-section px-5 py-14 md:px-8">
-        <div className="mx-auto max-w-3xl">
-          <form className="checkout-form rounded-2xl p-6 md:p-8" onSubmit={cancelSubscription}>
-            <h2 className="text-2xl font-black">Cancel monthly subscription</h2>
-            <p className="mt-2 mb-6">Enter the license key and purchase email. Cancellation takes effect at the end of the current billing period, and you can use your license until then.</p>
-            <div className="form-grid">
-              <label>License key<input required autoComplete="off" value={cancellation.licenseKey} onChange={(event) => setCancellation({ ...cancellation, licenseKey: event.target.value })} placeholder="SYN-XXXX-XXXX-XXXX" /></label>
-              <label>Purchase email<input required type="email" autoComplete="email" value={cancellation.email} onChange={(event) => setCancellation({ ...cancellation, email: event.target.value })} placeholder="you@example.com" /></label>
-            </div>
-            <button className="purchase-button mt-6 w-full rounded-lg px-7 py-5 font-extrabold" type="submit" disabled={cancellationState.busy}>{cancellationState.busy ? 'Requesting cancellation...' : 'Cancel subscription'}</button>
-            {cancellationState.message && <p role="status" className={`form-message ${cancellationState.error ? 'error' : 'success'}`}>{cancellationState.message}</p>}
-          </form>
-        </div>
-      </section>
+      <section className="offer-section px-5 py-10 md:px-8"><div className="cancel-site-cta mx-auto flex max-w-3xl flex-wrap items-center justify-between gap-4 rounded-xl p-5"><div><strong>Already subscribed?</strong><p>Manage your monthly plan whenever you need to.</p></div><a className="purchase-button" href="/cancel-subscription">Manage subscription</a></div></section>
 
       <section id="features" className="features-section px-5 py-14 md:px-8"><div className="mx-auto max-w-6xl"><div className="section-heading"><h2 className="section-title">Synesis Features</h2></div><ul className="features-list"><li>Expert Advisor for MetaTrader 5</li><li>Monthly license with a 7-day trial</li><li>Six-month license with a one-time payment</li><li>Lifetime license with a one-time payment</li><li>Checkout hosted by Bachs</li><li>License generated after successful payment</li><li>License key sent to your email</li><li>Ongoing product updates</li></ul></div></section>
 
@@ -210,7 +187,11 @@ function App() {
             <h2 className="section-title mt-3">Reviews</h2>
             <p className="mx-auto mt-4 leading-7">Customer reviews will appear here.</p>
           </div>
-          <div className="reviews-grid mt-10">
+          <div className="reviews-carousel-controls" aria-label="Review carousel controls">
+            <button type="button" aria-label="Scroll reviews left" onClick={() => document.querySelector('.reviews-grid')?.scrollBy({ left: -380, behavior: 'smooth' })}>←</button>
+            <button type="button" aria-label="Scroll reviews right" onClick={() => document.querySelector('.reviews-grid')?.scrollBy({ left: 380, behavior: 'smooth' })}>→</button>
+          </div>
+          <div className="reviews-grid mt-3" role="region" aria-label="Customer reviews" tabIndex="0">
             {reviewPlaceholders.map((number) => (
               <article className="review-card" key={number}>
                 <p className="review-placeholder">Add a real customer review here.</p>

@@ -1,8 +1,14 @@
 # Admin API
 
-Set a strong `ADMIN_API_KEY` in the server environment before using these endpoints. Send it in the `x-admin-api-key` header. Admin routes return `503` when the key is not configured, `401` when the header is missing, and `403` when it is incorrect.
+Set a strong `ADMIN_API_KEY` in the server environment before using these endpoints. Sign in to `/admin` on the website with this key; the dashboard exchanges it for an eight-hour session token. Direct API clients may continue to send it in the `x-admin-api-key` header. Admin routes return `503` when the key is not configured, `401` when credentials are missing, and `403` when the API key is incorrect.
 
 All routes are under `/api/admin`:
+
+| Method | Path | Purpose |
+| --- | --- | --- |
+| `POST` | `/auth/login` | Exchange `{ "apiKey": "..." }` for a short-lived admin session token. This login route is rate-limited. |
+
+The website dashboard is available at `/admin`. It provides an overview, paginated license/user/payment views, license creation, and license revocation. The session token is kept in the current browser tab and expires after eight hours.
 
 | Method | Path | Purpose |
 | --- | --- | --- |
@@ -24,6 +30,6 @@ The current data model has no standalone user account collection, so `/users` re
 
 ## Customer subscription cancellation
 
-Customers can cancel their monthly subscription through `POST /api/payment/cancel-subscription`. Send JSON `{ "licenseKey": "...", "email": "..." }` with the license key and purchase email. The endpoint rate-limits attempts and schedules cancellation at the end of the current billing period; the license remains valid through that date. The public site has a cancellation form under “Cancel monthly subscription.”
+Customers can cancel their monthly subscription through `POST /api/payment/cancel-subscription`. Send JSON `{ "licenseKey": "...", "email": "..." }` with the license key and purchase email. The endpoint rate-limits attempts and schedules cancellation at the end of the current billing period; the license remains valid through that date. The public site has a dedicated cancellation page at `/cancel-subscription`.
 
 For subscription IDs to be linked to customer licenses, enable these Bachs webhook events for the existing webhook URL: `customer.subscription.created`, `customer.subscription.updated`, and `customer.subscription.deleted`, in addition to `collection.succeeded`. The subscription webhook carries the checkout metadata reference, which the server uses to match the purchase.

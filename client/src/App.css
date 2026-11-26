@@ -46,6 +46,9 @@ main { padding-top: 60px; color: var(--ink); font-family: Arial, Helvetica, sans
 .results-empty code { color: #087eaf; font-size: .9em; }
 
 .offer-section { max-width: 1240px; margin: auto; }
+.cancel-site-cta { border: 1px solid #d1e9f1; background: linear-gradient(110deg, #effafd, #f8fbfc); }
+.cancel-site-cta strong { color: #25364e; font-size: 15px; }
+.cancel-site-cta p { margin: 5px 0 0; color: #718096; font-size: 12px; }
 .included-grid { align-items: stretch; }
 .included-card { border: 1px solid #ccc; border-radius: 7px; background: linear-gradient(135deg, #f0f0f0, #e4e4e4); }
 .plan-card { position: relative; min-height: 210px; color: #222; font: inherit; cursor: pointer; transition: border-color 120ms ease, background 120ms ease; }
@@ -75,8 +78,12 @@ main { padding-top: 60px; color: var(--ink); font-family: Arial, Helvetica, sans
 .how-it-works ol { margin: 12px 0 0; padding-left: 24px; }
 .how-it-works li { padding: 3px 0; }
 
-.reviews-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
-.review-card { min-height: 120px; padding: 18px; border: 1px solid #ccc; border-radius: 7px; background: linear-gradient(135deg, #f0f0f0, #e4e4e4); }
+.reviews-grid { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(280px, 38%); gap: 14px; overflow-x: auto; overscroll-behavior-x: contain; padding: 2px 2px 14px; scroll-snap-type: x mandatory; scrollbar-color: #159bc8 #d7e0e5; scrollbar-width: thin; }
+.review-card { min-height: 120px; padding: 18px; border: 1px solid #ccc; border-radius: 7px; background: linear-gradient(135deg, #f0f0f0, #e4e4e4); scroll-snap-align: start; }
+.reviews-carousel-controls { display: flex; justify-content: flex-end; gap: 7px; margin-top: 16px; }
+.reviews-carousel-controls button { display: grid; width: 34px; height: 34px; place-items: center; border: 1px solid #bbb; border-radius: 50%; color: #087eaf; background: #f2f5f6; font-size: 18px; cursor: pointer; }
+.reviews-carousel-controls button:hover { border-color: #0e98ce; background: #e9f7fb; }
+.reviews-carousel-controls button:focus-visible { outline: 2px solid #0e98ce; outline-offset: 2px; }
 .review-placeholder { color: #555; line-height: 1.6; }
 .review-author { margin-top: 16px; color: #222; font-size: 13px; font-weight: 700; }
 .faq-section a,.contact-section a { color: #067fc0; font-weight: 700; }
@@ -101,7 +108,7 @@ main { padding-top: 60px; color: var(--ink); font-family: Arial, Helvetica, sans
   .result-card { padding: 5px; }
   .result-frame { min-height: 180px; }
   .features-list { grid-template-columns: 1fr; }
-  .reviews-grid { grid-template-columns: 1fr; }
+  .reviews-grid { grid-auto-columns: 85%; }
   .form-grid { grid-template-columns: 1fr; }
 }
 
