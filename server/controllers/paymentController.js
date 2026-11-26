@@ -1,8 +1,10 @@
 
 const crypto = require('crypto');
 const Payment = require('../models/Payment');
+const License = require('../models/License');
 const {
-    initializeProductCheckout
+    initializeProductCheckout,
+    cancelSubscription
 } = require('../services/bachsService');
 
 // Keep product IDs on the backend. The six-month product is a one-time charge.
@@ -116,4 +118,66 @@ const initializePayment = async (req, res) => {
     }
 };
 
-module.exports = { initializePayment };
+const cancelRecurringSubscription = async (req, res) => {
+    try {
+        const { licenseKey, email } = req.body;
+        if (typeof licenseKey !== 'string' || !licenseKey.trim() || typeof email !== 'string' || !email.trim()) {
+            return res.status(400).json({ success: false, message: 'License key and purchase email are required.' });
+        }
+
+        const license = await License.findOne({
+            licenseKey: licenseKey.trim(),
+            'user.email': email.trim().toLowerCase()
+        });
+
+        // Do not reveal whether a key or an email address was valid.
+        if (!license) {
+            return res.status(404).json({ success: false, message: 'We could not find a matching subscription.' });
+        }
+        if (license.plan !== 'BASIC' || !license.subscriptionId) {
+            return res.status(409).json({ success: false, message: 'This license has no active recurring subscription to cancel.' });
+        }
+        if (license.subscriptionCancelAtPeriodEnd) {
+            return res.json({
+                success: true,
+                message: 'Your subscription is already set to cancel at the end of the current billing period.',
+                effectiveAt: license.subscriptionCancelEffectiveAt
+            });
+        }
+
+        // Bachs defaults to period-end cancellation; specify it explicitly so access remains valid until then.
+        const canceled = await cancelSubscription(license.subscriptionId, { cancelAtPeriodEnd: true });
+        const effectiveAt = canceled.current_period_end
+            ? new Date(canceled.current_period_end)
+            : license.expiresAt;
+        const canceledAt = canceled.canceled_at ? new Date(canceled.canceled_at) : new Date();
+
+        license.subscriptionCancelAtPeriodEnd = true;
+        license.subscriptionCanceledAt = canceledAt;
+        license.subscriptionCancelEffectiveAt = effectiveAt || null;
+        if (effectiveAt && !Number.isNaN(effectiveAt.getTime())) license.expiresAt = effectiveAt;
+        await license.save();
+
+        await Payment.updateMany(
+            { subscriptionId: license.subscriptionId },
+            {
+                $set: {
+                    subscriptionCancelAtPeriodEnd: true,
+                    subscriptionCanceledAt: canceledAt,
+                    subscriptionCancelEffectiveAt: effectiveAt || null
+                }
+            }
+        );
+
+        return res.json({
+            success: true,
+            message: 'Your subscription will not renew. Your license remains active until the current billing period ends.',
+            effectiveAt: effectiveAt || null
+        });
+    } catch (error) {
+        console.error('Subscription cancellation error:', error);
+        return res.status(502).json({ success: false, message: 'Unable to cancel the subscription right now. Please try again or contact support.' });
+    }
+};
+
+module.exports = { initializePayment, cancelRecurringSubscription };

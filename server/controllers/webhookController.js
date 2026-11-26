@@ -66,6 +66,58 @@ const handleBachsWebhook = async (req, res) => {
             throw error;
         }
 
+        if (event.type === 'customer.subscription.created') {
+            const subscription = event.data;
+            const reference = subscription.reference || subscription.metadata?.reference;
+            if (!subscription.id || !reference) {
+                console.error('Subscription or checkout reference missing:', subscription);
+                return res.sendStatus(200);
+            }
+
+            const payment = await Payment.findOneAndUpdate(
+                { reference },
+                { $set: { subscriptionId: subscription.id } },
+                { new: true }
+            );
+            if (payment?.license) {
+                await License.updateOne(
+                    { _id: payment.license },
+                    { $set: { subscriptionId: subscription.id } }
+                );
+            }
+            return res.sendStatus(200);
+        }
+
+        // Keep subscription cancellation state in sync if it is changed in Bachs.
+        if (event.type === 'customer.subscription.updated' || event.type === 'customer.subscription.deleted') {
+            const subscription = event.data;
+            if (subscription.id) {
+                const updates = {};
+                if (subscription.cancel_at_period_end !== undefined) {
+                    updates.subscriptionCancelAtPeriodEnd = subscription.cancel_at_period_end;
+                    if (!subscription.cancel_at_period_end) {
+                        updates.subscriptionCanceledAt = null;
+                        updates.subscriptionCancelEffectiveAt = null;
+                    }
+                }
+                if (subscription.canceled_at) updates.subscriptionCanceledAt = new Date(subscription.canceled_at);
+                if (subscription.current_period_end) {
+                    updates.subscriptionCancelEffectiveAt = new Date(subscription.current_period_end);
+                    updates.expiresAt = new Date(subscription.current_period_end);
+                }
+                if (event.type === 'customer.subscription.deleted') {
+                    updates.subscriptionCancelAtPeriodEnd = true;
+                    updates.subscriptionCanceledAt = subscription.canceled_at ? new Date(subscription.canceled_at) : new Date();
+                    if (subscription.canceled_at) updates.expiresAt = new Date(subscription.canceled_at);
+                }
+                await Promise.all([
+                    Payment.updateMany({ subscriptionId: subscription.id }, { $set: Object.fromEntries(Object.entries(updates).filter(([key]) => key !== 'expiresAt')) }),
+                    License.updateMany({ subscriptionId: subscription.id }, { $set: updates })
+                ]);
+            }
+            return res.sendStatus(200);
+        }
+
         // We only generate licenses for successful payments.
         if (event.type !== 'collection.succeeded') {
             return res.sendStatus(200);
@@ -96,6 +148,12 @@ const handleBachsWebhook = async (req, res) => {
         if (payment.status !== 'SUCCESS') {
             payment.status = 'SUCCESS';
             payment.paidAt = new Date();
+            await payment.save();
+        }
+
+        const subscriptionId = data.subscription_id || data.subscription?.id;
+        if (subscriptionId && payment.subscriptionId !== subscriptionId) {
+            payment.subscriptionId = subscriptionId;
             await payment.save();
         }
 
@@ -141,6 +199,7 @@ const handleBachsWebhook = async (req, res) => {
                 email: payment.customer.email
             },
             plan: payment.plan,
+            subscriptionId: payment.subscriptionId,
             paymentReference: reference,
             expiresAt
         });

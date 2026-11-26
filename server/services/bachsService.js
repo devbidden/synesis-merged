@@ -179,6 +179,16 @@ const getCheckoutSession = (checkoutId) => {
     );
 };
 
+const cancelSubscription = (subscriptionId, { cancelAtPeriodEnd = true } = {}) => {
+    return request(`/v1/subscriptions/${encodeURIComponent(subscriptionId)}`, {
+        method: 'DELETE',
+        body: {
+            cancel_at_period_end: cancelAtPeriodEnd,
+            reason: 'Customer requested'
+        }
+    });
+};
+
 const verifyWebhookSignature = (rawBody, timestamp, signature, secret) => {
     if (!secret || !timestamp || !signature) return false;
 
@@ -205,5 +215,6 @@ module.exports = {
     initializeTransaction,
     initializeProductCheckout,
     getCheckoutSession,
+    cancelSubscription,
     verifyWebhookSignature
 };

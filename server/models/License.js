@@ -48,6 +48,18 @@ const licenseSchema = new mongoose.Schema({
         type: String,
         default: null
     },
+    subscriptionCancelAtPeriodEnd: {
+        type: Boolean,
+        default: false
+    },
+    subscriptionCanceledAt: {
+        type: Date,
+        default: null
+    },
+    subscriptionCancelEffectiveAt: {
+        type: Date,
+        default: null
+    },
 
     nextBillingDate: {
         type: Date,
