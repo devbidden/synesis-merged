@@ -211,7 +211,7 @@ function AdminDashboard() {
       </aside>
 
       <main className="admin-main">
-        <header className="admin-topbar"><div><span className="admin-breadcrumb">Workspace /</span> {sections.find(([id]) => id === section)?.[1]}</div><a href="/" className="admin-view-site">View website ↗</a></header>
+        <header className="admin-topbar"><div><span className="admin-breadcrumb">Workspace /</span> {sections.find(([id]) => id === section)?.[1]}</div><div className="admin-topbar-actions"><a href="/" className="admin-view-site">View website ↗</a><button className="admin-mobile-logout" onClick={logout}>Sign out</button></div></header>
         <div className="admin-content">
           <div className="admin-page-heading"><div><p className="admin-eyebrow">SYNESISBOT MANAGEMENT</p><h1>{section === 'overview' ? 'Overview' : sections.find(([id]) => id === section)?.[1]}</h1><p>Manage customers, licenses, and billing activity.</p></div>{section === 'licenses' && <button className="admin-primary-button" onClick={() => setShowCreate(!showCreate)}>＋ Create license</button>}</div>
 

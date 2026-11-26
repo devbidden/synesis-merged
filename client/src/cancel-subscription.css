@@ -1,4 +1,4 @@
-.cancel-page { min-height: 100vh; box-sizing: border-box; padding: 0 20px 48px; color: #1d2b42; background: radial-gradient(ellipse at 50% 0, #e3f6fb 0, transparent 44%), #f5f7fa; font-family: Arial, Helvetica, sans-serif; }
+.cancel-page { min-height: 100vh; box-sizing: border-box; padding: 0 20px 48px; padding-top: 0; color: #1d2b42; background: radial-gradient(ellipse at 50% 0, #e3f6fb 0, transparent 44%), #f5f7fa; font-family: Arial, Helvetica, sans-serif; }
 .cancel-header { display: flex; max-width: 1120px; height: 74px; align-items: center; justify-content: space-between; margin: 0 auto; }
 .cancel-brand img { display: block; width: 128px; height: 44px; object-fit: contain; }
 .cancel-home-link { color: #5d6d84; font-size: 13px; font-weight: 700; text-decoration: none; }
