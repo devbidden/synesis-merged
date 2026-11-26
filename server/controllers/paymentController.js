@@ -21,6 +21,8 @@ const PLANS = {
     }
 };
 
+const frontendUrl = (process.env.FRONTEND_URL || 'https://synesisbot.com').replace(/\/+$/, '');
+
 const initializePayment = async (req, res) => {
     try {
         const { name, email, plan } = req.body;
@@ -67,8 +69,8 @@ const initializePayment = async (req, res) => {
                 email: payment.customer.email,
                 name: payment.customer.name,
                 reference,
-                successUrl: 'https://synesisbot.com/payment/success',
-                cancelUrl: 'https://synesisbot.com/payment/cancel',
+                successUrl: `${frontendUrl}/payment/success`,
+                cancelUrl: `${frontendUrl}/payment/cancel`,
                 metadata: {
                     reference,
                     plan

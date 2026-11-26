@@ -23,6 +23,21 @@ const addMonths = (date, months) => {
     return result;
 };
 
+const deliverLicenseEmail = async (payment, license) => {
+    if (payment.licenseEmailSentAt) return;
+
+    await sendLicenseEmail({
+        name: payment.customer.name,
+        email: payment.customer.email,
+        licenseKey: license.licenseKey,
+        plan: payment.plan,
+        expiresAt: license.expiresAt
+    });
+
+    payment.licenseEmailSentAt = new Date();
+    await payment.save();
+};
+
 const handleBachsWebhook = async (req, res) => {
     try {
         const secret = process.env.BACHS_WEBHOOK_SECRET;
@@ -97,6 +112,9 @@ const handleBachsWebhook = async (req, res) => {
                 await payment.save();
             }
 
+            // A prior email failure can be retried by a repeated webhook.
+            await deliverLicenseEmail(payment, existingLicense);
+
             return res.sendStatus(200);
         }
 
@@ -135,13 +153,7 @@ const handleBachsWebhook = async (req, res) => {
         console.log('License:', license.licenseKey);
         console.log('Customer:', payment.customer.email);
 
-        await sendLicenseEmail({
-            name: payment.customer.name,
-            email: payment.customer.email,
-            licenseKey: license.licenseKey,
-            plan: payment.plan,
-            expiresAt: license.expiresAt
-        });
+        await deliverLicenseEmail(payment, license);
         
         return res.sendStatus(200);
 

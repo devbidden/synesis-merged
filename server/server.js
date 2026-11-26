@@ -14,14 +14,16 @@ const { handleBachsWebhook } = require('./controllers/webhookController');
 const app = express();
 
 app.use(cors());
-app.use(express.json());
 
-// Webhook route must come before express.json()
+// Keep the webhook body raw so Bachs can verify its signature.
 app.post(
     '/api/payment/webhook',
     express.raw({ type: 'application/json' }),
     handleBachsWebhook
 );
+
+app.use(express.json());
+
 // Routes
 app.use('/api/license', licenseRoutes);
 app.use('/api/payment', paymentRoutes);

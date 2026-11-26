@@ -55,6 +55,10 @@ const paymentSchema = new mongoose.Schema({
     paidAt: {
         type: Date,
         default: null
+    },
+    licenseEmailSentAt: {
+        type: Date,
+        default: null
     }
 }, { timestamps: true });
 
