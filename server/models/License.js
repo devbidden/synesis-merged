@@ -22,8 +22,8 @@ const licenseSchema = new mongoose.Schema({
 
     plan: {
         type: String,
-        enum: ['BASIC', 'SIX_MONTHS', 'LIFETIME'],
-        required: true
+        enum: ['BASIC', 'SIX_MONTHS', 'LIFETIME', 'MANUAL'],
+        default: 'MANUAL'
     },
 
     status: {
@@ -68,11 +68,7 @@ const licenseSchema = new mongoose.Schema({
         type: Date,
         default: null
     },
-    plan: {
-        type: String,
-        enum: ['BASIC', 'SIX_MONTHS', 'LIFETIME', 'MANUAL'],
-        default: 'MANUAL'
-    },
+   
        lastVerifiedAt: {
         type: Date,
         default: null

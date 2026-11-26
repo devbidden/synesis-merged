@@ -69,11 +69,11 @@ const activateLicense = async (req, res) => {
                     message: 'License has already been activated on another device.'
                 });
             }
-
             return res.status(200).json({
                 success: true,
                 status: 'ACTIVATED',
-                message: 'License activated successfully.'
+                message: 'License verified successfully.',
+                expiresAt: license.expiresAt
             });
         }
 
