@@ -128,5 +128,7 @@ body:has(.admin-shell) #root,body:has(.admin-login-wrap) #root { min-height: 100
 .admin-ea-upload-form { display: grid; gap: 12px; border: 1px solid #e5eaf0; border-radius: 10px; padding: 17px; background: #fff; }
 .admin-ea-upload-form input[type="file"] { min-height: 44px; padding: 8px; }
 .admin-ea-help { margin: -5px 0 0; color: #8a95a6; font-size: 10px; line-height: 1.5; }
+.admin-ea-progress { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; color: #63718a; font-size: 11px; }
+.admin-ea-progress progress { width: min(100%, 280px); height: 8px; accent-color: #159bc8; }
 .admin-ea-upload-form .admin-primary-button { justify-self: start; }
 @media (max-width: 680px) { .admin-ea-heading { flex-direction: column; } .admin-ea-file-card { align-items: flex-start; flex-wrap: wrap; padding: 13px; } .admin-ea-file-details { flex-basis: calc(100% - 58px); } .admin-ea-file-card > a { margin-left: 56px; } }

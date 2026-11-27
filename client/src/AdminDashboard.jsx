@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import { upload as uploadToBlob } from '@vercel/blob/client'
 import './admin.css'
 
 const API_URL = (import.meta.env.VITE_API_URL || '').replace(/\/$/, '')
@@ -255,9 +256,11 @@ function Metric({ title, value, detail, icon }) {
 }
 
 function EAFileManager({ token }) {
+  const maxUploadSize = 100 * 1024 * 1024
   const [file, setFile] = useState(null)
   const [status, setStatus] = useState(null)
   const [busy, setBusy] = useState(false)
+  const [uploadProgress, setUploadProgress] = useState(0)
   const [message, setMessage] = useState('')
   const [error, setError] = useState('')
 
@@ -276,19 +279,41 @@ function EAFileManager({ token }) {
     event.preventDefault()
     if (!file) return
     const form = event.currentTarget
+    if (file.size > maxUploadSize) {
+      setError('The EA file must be smaller than 100 MB.')
+      return
+    }
     setBusy(true)
+    setUploadProgress(0)
     setError('')
     setMessage('')
     try {
-      const result = await request('/api/admin/ea-file', {
-        token,
-        method: 'PUT',
-        body: file,
-        headers: {
-          'Content-Type': 'application/octet-stream',
-          'X-Upload-Filename': file.name,
-        },
-      })
+      let result
+      if (status?.uploadMode === 'blob') {
+        const blob = await uploadToBlob('synesis-ea/synesis-ea.ex5', file, {
+          access: 'public',
+          contentType: 'application/octet-stream',
+          handleUploadUrl: `${API_URL}/api/admin/ea-file/upload-token`,
+          headers: { Authorization: `Bearer ${token}` },
+          multipart: file.size > 5 * 1024 * 1024,
+          onUploadProgress: ({ percentage }) => setUploadProgress(Math.round(percentage)),
+        })
+        result = await request('/api/admin/ea-file', {
+          token,
+          method: 'PUT',
+          body: JSON.stringify({ url: blob.url, pathname: blob.pathname }),
+        })
+      } else if (status?.uploadMode === 'local') {
+        result = await request('/api/admin/ea-file', {
+          token,
+          method: 'PUT',
+          body: file,
+          headers: { 'Content-Type': 'application/octet-stream', 'X-Upload-Filename': file.name },
+        })
+        setUploadProgress(100)
+      } else {
+        throw new Error('EA uploads are not configured on this deployment. Connect a public Vercel Blob store and add BLOB_READ_WRITE_TOKEN to the backend project.')
+      }
       setMessage(result.message)
       setFile(null)
       await refreshStatus()
@@ -319,7 +344,8 @@ function EAFileManager({ token }) {
       <form className="admin-ea-upload-form" onSubmit={upload}>
         <label className="admin-field">Select compiled EA file<input type="file" accept=".ex5,application/octet-stream" onChange={(event) => setFile(event.target.files?.[0] || null)} /></label>
         <p className="admin-ea-help">EX5 files only. Maximum upload size: 100 MB. Uploading replaces the current customer download.</p>
-        <button className="admin-primary-button" disabled={!file || busy}>{busy ? 'Uploading file…' : status?.available ? 'Replace EA download' : 'Upload EA file'}</button>
+        {busy && <div className="admin-ea-progress" role="status" aria-live="polite"><progress max="100" value={uploadProgress} /><span>Uploading file: {uploadProgress}%</span></div>}
+        <button className="admin-primary-button" disabled={!file || busy}>{busy ? `Uploading… ${uploadProgress}%` : status?.available ? 'Replace EA download' : 'Upload EA file'}</button>
       </form>
     </section>
   )

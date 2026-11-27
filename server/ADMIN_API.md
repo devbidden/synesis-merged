@@ -19,7 +19,8 @@ The website dashboard is available at `/admin`. It provides an overview, paginat
 | `GET` | `/paying-users` | List distinct customers with at least one successful payment, with payment totals. |
 | `GET` | `/payments` | List payment records. Optional `status`, `page`, and `limit` query parameters. |
 | `GET` | `/ea-file` | Check EA download availability, file metadata, and the persistent completed-download count. |
-| `PUT` | `/ea-file` | Upload or replace the customer `.ex5` file. Send the raw file body as `application/octet-stream` and its original name in `X-Upload-Filename`; maximum 100 MB. |
+| `POST` | `/ea-file/upload-token` | Authorize the admin's direct browser upload to Vercel Blob. |
+| `PUT` | `/ea-file` | Save the uploaded public Blob URL and metadata as the current customer download. |
 
 List endpoints use pages of 50 by default and cap `limit` at 200. For example:
 
@@ -30,7 +31,11 @@ curl -H "x-admin-api-key: $ADMIN_API_KEY" \
 
 The current data model has no standalone user account collection, so `/users` reports people represented by license records. `/paying-users` uses successful payment records.
 
-The public download is `GET /api/download/ea`; availability is `GET /api/download/ea/status`. Successful file transfers increment a MongoDB counter shown on the admin overview and EA download page. The file is stored as `server/uploads/synesis-ea.ex5` by default. Set `EA_UPLOAD_DIR` if the deployment needs a persistent volume. The free download is the EA shell; customers still need a valid Synesis license to activate it.
+### Vercel Blob setup for EA uploads
+
+Create a **public** Blob store in Vercel Storage and connect it to the backend project. Add its `BLOB_READ_WRITE_TOKEN` to the backend project's Production environment (and Preview/Development if you use those). The admin upload first requests a short-lived upload token from the authenticated API, sends the `.ex5` directly from the browser to Blob, then saves the resulting URL and file metadata in MongoDB. This avoids routing the file through a Vercel Function and keeps the active download URL persistent. The backend uses the Blob URL for `GET /api/download/ea`; successful download requests continue incrementing the MongoDB counter.
+
+The free download is the EA shell; customers still need a valid Synesis license to activate it. A legacy local-file fallback remains for self-hosted deployments.
 
 ## Customer subscription cancellation
 
